@@ -1,4 +1,4 @@
-package jsparser
+package jsparser // import "fknsrs.biz/p/jsparser"
 
 import (
 	"bufio"
