@@ -8,64 +8,20 @@ import (
 	"unicode/utf8"
 )
 
-var keywords = map[string]string{
-	"break":      "kwBreak",
-	"case":       "kwCase",
-	"catch":      "kwCatch",
-	"class":      "kwClass",
-	"const":      "kwConst",
-	"continue":   "kwContinue",
-	"debugger":   "kwDebugger",
-	"default":    "kwDefault",
-	"delete":     "kwDelete",
-	"do":         "kwDo",
-	"else":       "kwElse",
-	"export":     "kwExport",
-	"extends":    "kwExtends",
-	"finally":    "kwFinally",
-	"for":        "kwFor",
-	"function":   "kwFunction",
-	"if":         "kwIf",
-	"import":     "kwImport",
-	"in":         "kwIn",
-	"instanceof": "kwInstanceof",
-	"new":        "kwNew",
-	"return":     "kwReturn",
-	"super":      "kwSuper",
-	"switch":     "kwSwitch",
-	"this":       "kwThis",
-	"throw":      "kwThrow",
-	"try":        "kwTry",
-	"typeof":     "kwTypeof",
-	"var":        "kwVar",
-	"void":       "kwVoid",
-	"while":      "kwWhile",
-	"with":       "kwWith",
-	"yield":      "kwYield",
-}
-
 type TokeniserError struct {
 	Message string
 	Offset  int
-	Mode    TokeniserMode
+	Mode    LexicalState
 }
 
 func (t TokeniserError) Error() string {
-	return fmt.Sprintf("TokeniserError (mode %s at offset %d): %s", t.Mode, t.Offset, t.Message)
+	return fmt.Sprintf("TokeniserError (state %s at offset %d): %s", t.Mode, t.Offset, t.Message)
 }
 
 type TokenKind int
 
 const (
 	TokenKindWhitespace TokenKind = iota
-	TokenKindMetaShebangLine
-	TokenKindNumber
-	TokenKindIdentifier
-	TokenKindString
-	TokenKindRegexp
-	TokenKindSingleLineComment
-	TokenKindMultipleLineComment
-	TokenKindTemplateText
 	TokenKindBinaryAssignment
 	TokenKindBinaryBitwiseAnd
 	TokenKindBinaryBitwiseAndAssignment
@@ -101,6 +57,11 @@ const (
 	TokenKindBinaryStarAssignment
 	TokenKindBinaryStrictEquals
 	TokenKindBinaryStrictNotEquals
+	TokenKindIdentifier
+	TokenKindKeyword
+	TokenKindMetaShebangLine
+	TokenKindMultipleLineComment
+	TokenKindNumber
 	TokenKindPuncAt
 	TokenKindPuncBacktick
 	TokenKindPuncColon
@@ -116,8 +77,13 @@ const (
 	TokenKindPuncRightParen
 	TokenKindPuncSemicolon
 	TokenKindPuncSpread
-	TokenKindPuncTemplateVariableClose
-	TokenKindPuncTemplateVariableOpen
+	TokenKindRegexp
+	TokenKindSingleLineComment
+	TokenKindString
+	TokenKindTemplateHead
+	TokenKindTemplateMiddle
+	TokenKindTemplateNoSubstitution
+	TokenKindTemplateTail
 	TokenKindUnaryBang
 	TokenKindUnaryDecrement
 	TokenKindUnaryIncrement
@@ -126,24 +92,6 @@ const (
 
 func (t TokenKind) String() string {
 	switch t {
-	case TokenKindWhitespace:
-		return "whitespace"
-	case TokenKindMetaShebangLine:
-		return "metaShebangLine"
-	case TokenKindNumber:
-		return "number"
-	case TokenKindIdentifier:
-		return "identifier"
-	case TokenKindString:
-		return "string"
-	case TokenKindRegexp:
-		return "regexp"
-	case TokenKindSingleLineComment:
-		return "singleLineComment"
-	case TokenKindMultipleLineComment:
-		return "multipleLineComment"
-	case TokenKindTemplateText:
-		return "templateText"
 	case TokenKindBinaryAssignment:
 		return "binaryAssignment"
 	case TokenKindBinaryBitwiseAnd:
@@ -214,6 +162,16 @@ func (t TokenKind) String() string {
 		return "binaryStrictEquals"
 	case TokenKindBinaryStrictNotEquals:
 		return "binaryStrictNotEquals"
+	case TokenKindIdentifier:
+		return "identifier"
+	case TokenKindKeyword:
+		return "keyword"
+	case TokenKindMetaShebangLine:
+		return "metaShebangLine"
+	case TokenKindMultipleLineComment:
+		return "multipleLineComment"
+	case TokenKindNumber:
+		return "number"
 	case TokenKindPuncAt:
 		return "puncAt"
 	case TokenKindPuncBacktick:
@@ -244,10 +202,20 @@ func (t TokenKind) String() string {
 		return "puncSemicolon"
 	case TokenKindPuncSpread:
 		return "puncSpread"
-	case TokenKindPuncTemplateVariableClose:
-		return "puncTemplateVariableClose"
-	case TokenKindPuncTemplateVariableOpen:
-		return "puncTemplateVariableOpen"
+	case TokenKindRegexp:
+		return "regexp"
+	case TokenKindSingleLineComment:
+		return "singleLineComment"
+	case TokenKindString:
+		return "string"
+	case TokenKindTemplateHead:
+		return "templateHead"
+	case TokenKindTemplateMiddle:
+		return "templateMiddle"
+	case TokenKindTemplateNoSubstitution:
+		return "templateNoSubstitution"
+	case TokenKindTemplateTail:
+		return "templateTail"
 	case TokenKindUnaryBang:
 		return "unaryBang"
 	case TokenKindUnaryDecrement:
@@ -256,6 +224,8 @@ func (t TokenKind) String() string {
 		return "unaryIncrement"
 	case TokenKindUnaryTilde:
 		return "unaryTilde"
+	case TokenKindWhitespace:
+		return "whitespace"
 	default:
 		return "unknown"
 	}
@@ -270,30 +240,32 @@ type Token struct {
 
 type TokenSet []Token
 
-type TokeniserMode int
+type LexicalState int
 
 const (
-	TokeniserModeNormal TokeniserMode = iota
-	TokeniserModeTemplateText
-	TokeniserModeTemplateVariable
+	InputElementDiv LexicalState = iota
+	InputElementRegExp
+	InputElementRegExpOrTemplateTail
+	InputElementTemplateTail
 )
 
-func (m TokeniserMode) String() string {
-	switch m {
-	case TokeniserModeNormal:
-		return "normal"
-	case TokeniserModeTemplateText:
-		return "template-text"
-	case TokeniserModeTemplateVariable:
-		return "template-variable"
+func (s LexicalState) String() string {
+	switch s {
+	case InputElementDiv:
+		return "InputElementDiv"
+	case InputElementRegExp:
+		return "InputElementRegExp"
+	case InputElementRegExpOrTemplateTail:
+		return "InputElementRegExpOrTemplateTail"
+	case InputElementTemplateTail:
+		return "InputElementTemplateTail"
 	default:
 		return "unknown"
 	}
 }
 
 type Tokeniser struct {
-	mode   TokeniserMode
-	modes  []TokeniserMode
+	state  LexicalState
 	rd     *bufio.Reader
 	buf    []rune
 	regexp bool
@@ -315,34 +287,12 @@ func (t *Tokeniser) errf(format string, a ...interface{}) TokeniserError {
 	return TokeniserError{
 		Message: fmt.Sprintf(format, a...),
 		Offset:  t.saved,
-		Mode:    t.mode,
+		Mode:    t.state,
 	}
 }
 
-func (t *Tokeniser) pushMode(m TokeniserMode) {
-	t.mode = m
-	t.modes = append(t.modes, m)
-}
-
-func (t *Tokeniser) popMode() TokeniserMode {
-	p := t.mode
-
-	var m TokeniserMode
-	if len(t.modes) > 0 {
-		t.modes = t.modes[0 : len(t.modes)-1]
-
-		if len(t.modes) > 0 {
-			m = t.modes[len(t.modes)-1]
-		}
-	}
-
-	t.mode = m
-
-	return p
-}
-
-func (t *Tokeniser) Mode() TokeniserMode {
-	return t.mode
+func (t *Tokeniser) Mode() LexicalState {
+	return t.state
 }
 
 func (t *Tokeniser) ReadAll() (TokenSet, error) {
@@ -404,10 +354,6 @@ func (t *Tokeniser) Read() (*Token, error) {
 		default:
 			t.unreadRune(r0)
 		}
-	}
-
-	if t.mode == TokeniserModeTemplateText {
-		return t.lexTemplateText()
 	}
 
 	var ws []rune
@@ -595,7 +541,7 @@ func (t *Tokeniser) Read() (*Token, error) {
 		case r1 == '*':
 			t.unreadRune(r1, r0)
 			return t.lexMultipleLineComment()
-		case t.regexp:
+		case t.state == InputElementRegExp || t.state == InputElementRegExpOrTemplateTail:
 			t.unreadRune(r1, r0)
 			return t.lexRegexp()
 		case r1 == '=':
@@ -716,13 +662,8 @@ func (t *Tokeniser) Read() (*Token, error) {
 	case ']':
 		return &Token{Kind: TokenKindPuncRightBracket, Raw: "]", Offset: t.save()}, nil
 	case '`':
-		if t.mode == TokeniserModeTemplateText {
-			t.popMode()
-		} else {
-			t.pushMode(TokeniserModeTemplateText)
-		}
-
-		return &Token{Kind: TokenKindPuncBacktick, Raw: "`", Offset: t.save()}, nil
+		t.unreadRune(r0)
+		return t.lexTemplateHead()
 	case '^':
 		r1, err := t.readRune()
 		if err != nil {
@@ -738,7 +679,6 @@ func (t *Tokeniser) Read() (*Token, error) {
 
 		return &Token{Kind: TokenKindBinaryBitwiseXor, Raw: "^", Offset: t.save()}, nil
 	case '{':
-		t.pushMode(TokeniserModeNormal)
 		return &Token{Kind: TokenKindPuncLeftBrace, Raw: "{", Offset: t.save()}, nil
 	case '|':
 		r1, err := t.readRune()
@@ -757,9 +697,10 @@ func (t *Tokeniser) Read() (*Token, error) {
 
 		return &Token{Kind: TokenKindBinaryBitwiseOr, Raw: "|", Offset: t.save()}, nil
 	case '}':
-		switch t.popMode() {
-		case TokeniserModeTemplateVariable:
-			return &Token{Kind: TokenKindPuncTemplateVariableClose, Raw: "}", Offset: t.save()}, nil
+		switch t.state {
+		case InputElementTemplateTail, InputElementRegExpOrTemplateTail:
+			t.unreadRune(r0)
+			return t.lexTemplateTail()
 		default:
 			return &Token{Kind: TokenKindPuncRightBrace, Raw: "}", Offset: t.save()}, nil
 		}
@@ -794,69 +735,114 @@ func (t *Tokeniser) Read() (*Token, error) {
 	}
 }
 
-func (t *Tokeniser) lexTemplateText() (*Token, error) {
+func (t *Tokeniser) lexTemplateHead() (*Token, error) {
 	r0, err := t.readRune()
 	if err != nil {
 		return nil, err
 	}
 
-	switch r0 {
-	case '`':
-		t.popMode()
-		return &Token{Kind: TokenKindPuncBacktick, Raw: "`", Offset: t.save()}, nil
-	case '$':
+	if r0 != '`' {
+		return nil, t.errf("unexpected character %q", r0)
+	}
+
+	b := []rune{r0}
+	v := ""
+
+	for {
 		r1, err := t.readRune()
 		if err != nil {
 			return nil, err
 		}
 
 		switch r1 {
-		case '{':
-			t.pushMode(TokeniserModeTemplateVariable)
-			return &Token{Kind: TokenKindPuncTemplateVariableOpen, Raw: "${", Offset: t.save()}, nil
-		}
-
-		t.unreadRune(r1)
-	}
-
-	t.unreadRune(r0)
-
-	var b []rune
-loop:
-	for {
-		r0, err := t.readRune()
-		if err != nil {
-			return nil, err
-		}
-
-		switch r0 {
 		case '`':
-			t.unreadRune(r0)
-			break loop
+			b = append(b, r1)
+
+			return &Token{
+				Kind:   TokenKindTemplateNoSubstitution,
+				Raw:    string(b),
+				Value:  v,
+				Offset: t.save(),
+			}, nil
 		case '$':
-			r1, err := t.readRune()
+			r2, err := t.readRune()
 			if err != nil {
 				return nil, err
 			}
 
-			switch r1 {
+			switch r2 {
 			case '{':
-				t.unreadRune(r1, r0)
-				break loop
+				b = append(b, r1, r2)
+
+				return &Token{
+					Kind:   TokenKindTemplateHead,
+					Raw:    string(b),
+					Value:  v,
+					Offset: t.save(),
+				}, nil
 			}
 
-			t.unreadRune(r1)
+			t.unreadRune(r2)
 		}
 
-		b = append(b, r0)
+		b = append(b, r1)
+		v = v + string(r1)
+	}
+}
+
+func (t *Tokeniser) lexTemplateTail() (*Token, error) {
+	r0, err := t.readRune()
+	if err != nil {
+		return nil, err
 	}
 
-	return &Token{
-		Kind:   TokenKindTemplateText,
-		Value:  string(b),
-		Raw:    string(b),
-		Offset: t.save(),
-	}, nil
+	if r0 != '}' {
+		return nil, t.errf("unexpected character %q", r0)
+	}
+
+	b := []rune{r0}
+	v := ""
+
+	for {
+		r1, err := t.readRune()
+		if err != nil {
+			return nil, err
+		}
+
+		switch r1 {
+		case '`':
+			b = append(b, r1)
+
+			return &Token{
+				Kind:   TokenKindTemplateTail,
+				Raw:    string(b),
+				Value:  v,
+				Offset: t.save(),
+			}, nil
+		case '$':
+			r2, err := t.readRune()
+			if err != nil {
+				return nil, err
+			}
+
+			switch r2 {
+			case '{':
+				b = append(b, r1, r2)
+
+				return &Token{
+					Kind:   TokenKindTemplateMiddle,
+					Raw:    string(b),
+					Value:  v,
+					Offset: t.save(),
+				}, nil
+			}
+
+			t.unreadRune(r2)
+
+			b = append(b, r1)
+			v = v + string(r1)
+		}
+	}
 }
 
 func (t *Tokeniser) lexNumber() (*Token, error) {
