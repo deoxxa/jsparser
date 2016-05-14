@@ -154,7 +154,7 @@ type Program struct {
 
 type Function struct {
 	Node
-	Id        *Identifier    `json:"id"`
+	ID        *Identifier    `json:"id"`
 	Params    []Pattern      `json:"params"`
 	Body      BlockStatement `json:"body"`
 	Generator bool           `json:"generator"`
@@ -293,7 +293,7 @@ type Declaration struct {
 type FunctionDeclaration struct {
 	Function
 	Declaration
-	Id Identifier `json:"id"`
+	ID Identifier `json:"id"`
 }
 
 type VariableDeclaration struct {
@@ -304,7 +304,7 @@ type VariableDeclaration struct {
 
 type VariableDeclarator struct {
 	Node
-	Id   Pattern     `json:"id"`
+	ID   Pattern     `json:"id"`
 	Init *Expression `json:"init"`
 }
 
@@ -566,7 +566,7 @@ type AssignmentPattern struct {
 
 type Class struct {
 	Node
-	Id         *Identifier `json:"id"`
+	ID         *Identifier `json:"id"`
 	SuperClass *Expression `json:"superClass"`
 	Body       ClassBody   `json:"body"`
 	Decorators []Decorator `json:"decorators"`
@@ -603,7 +603,7 @@ type ClassProperty struct {
 type ClassDeclaration struct {
 	Class
 	Declaration
-	Id Identifier `json:"id"`
+	ID Identifier `json:"id"`
 }
 
 type ClassExpression struct {
