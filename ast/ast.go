@@ -1,87 +1,95 @@
+package ast
+
+import (
+	"encoding/json"
+)
+
 type UnaryOperator string
 
 const (
-	UnaryOperator_0 = "-"
-	UnaryOperator_1 = "+"
-	UnaryOperator_2 = "!"
-	UnaryOperator_3 = "~"
-	UnaryOperator_4 = "typeof"
-	UnaryOperator_5 = "void"
-	UnaryOperator_6 = "delete"
+	UnaryOperatorMinus  = "-"
+	UnaryOperatorPlus   = "+"
+	UnaryOperatorBang   = "!"
+	UnaryOperatorTilde  = "~"
+	UnaryOperatorTypeof = "typeof"
+	UnaryOperatorVoid   = "void"
+	UnaryOperatorDelete = "delete"
 )
 
 func (v UnaryOperator) Valid() bool {
-	return v == UnaryOperator_0 || v == UnaryOperator_1 || v == UnaryOperator_2 || v == UnaryOperator_3 || v == UnaryOperator_4 || v == UnaryOperator_5 || v == UnaryOperator_6
+	return v == UnaryOperatorMinus || v == UnaryOperatorPlus || v == UnaryOperatorBang || v == UnaryOperatorTilde || v == UnaryOperatorTypeof || v == UnaryOperatorVoid || v == UnaryOperatorDelete
 }
 
 type UpdateOperator string
 
 const (
-	UpdateOperator_0 = "++"
-	UpdateOperator_1 = "--"
+	UpdateOperatorIncrement = "++"
+	UpdateOperatorDecrement = "--"
 )
 
-func (v UpdateOperator) Valid() bool { return v == UpdateOperator_0 || v == UpdateOperator_1 }
+func (v UpdateOperator) Valid() bool {
+	return v == UpdateOperatorIncrement || v == UpdateOperatorDecrement
+}
 
 type BinaryOperator string
 
 const (
-	BinaryOperator_0  = "=="
-	BinaryOperator_1  = "!="
-	BinaryOperator_2  = "==="
-	BinaryOperator_3  = "!=="
-	BinaryOperator_4  = "<"
-	BinaryOperator_5  = "<="
-	BinaryOperator_6  = ">"
-	BinaryOperator_7  = ">="
-	BinaryOperator_8  = "<<"
-	BinaryOperator_9  = ">>"
-	BinaryOperator_10 = ">>>"
-	BinaryOperator_11 = "+"
-	BinaryOperator_12 = "-"
-	BinaryOperator_13 = "*"
-	BinaryOperator_14 = "/"
-	BinaryOperator_15 = "%"
-	BinaryOperator_16 = "|"
-	BinaryOperator_17 = "^"
-	BinaryOperator_18 = "&"
-	BinaryOperator_19 = "in"
-	BinaryOperator_20 = "instanceof"
+	BinaryOperatorEqual            = "=="
+	BinaryOperatorNotEqual         = "!="
+	BinaryOperatorStrictEqual      = "==="
+	BinaryOperatorStrictNotEqual   = "!=="
+	BinaryOperatorLess             = "<"
+	BinaryOperatorLessOrEqual      = "<="
+	BinaryOperatorGreater          = ">"
+	BinaryOperatorGreaterOrEqual   = ">="
+	BinaryOperatorShiftLeft        = "<<"
+	BinaryOperatorShiftRight       = ">>"
+	BinaryOperatorShiftRightSigned = ">>>"
+	BinaryOperatorPlus             = "+"
+	BinaryOperatorMinus            = "-"
+	BinaryOperatorMultiply         = "*"
+	BinaryOperatorDivide           = "/"
+	BinaryOperatorModulo           = "%"
+	BinaryOperatorOr               = "|"
+	BinaryOperatorXor              = "^"
+	BinaryOperatorAnd              = "&"
+	BinaryOperatorIn               = "in"
+	BinaryOperatorInstanceof       = "instanceof"
 )
 
 func (v BinaryOperator) Valid() bool {
-	return v == BinaryOperator_0 || v == BinaryOperator_1 || v == BinaryOperator_2 || v == BinaryOperator_3 || v == BinaryOperator_4 || v == BinaryOperator_5 || v == BinaryOperator_6 || v == BinaryOperator_7 || v == BinaryOperator_8 || v == BinaryOperator_9 || v == BinaryOperator_10 || v == BinaryOperator_11 || v == BinaryOperator_12 || v == BinaryOperator_13 || v == BinaryOperator_14 || v == BinaryOperator_15 || v == BinaryOperator_16 || v == BinaryOperator_17 || v == BinaryOperator_18 || v == BinaryOperator_19 || v == BinaryOperator_20
+	return v == BinaryOperatorEqual || v == BinaryOperatorNotEqual || v == BinaryOperatorStrictEqual || v == BinaryOperatorStrictNotEqual || v == BinaryOperatorLess || v == BinaryOperatorLessOrEqual || v == BinaryOperatorGreater || v == BinaryOperatorGreaterOrEqual || v == BinaryOperatorShiftLeft || v == BinaryOperatorShiftRight || v == BinaryOperatorShiftRightSigned || v == BinaryOperatorPlus || v == BinaryOperatorMinus || v == BinaryOperatorMultiply || v == BinaryOperatorDivide || v == BinaryOperatorModulo || v == BinaryOperatorOr || v == BinaryOperatorXor || v == BinaryOperatorAnd || v == BinaryOperatorIn || v == BinaryOperatorInstanceof
 }
 
 type AssignmentOperator string
 
 const (
-	AssignmentOperator_0  = "="
-	AssignmentOperator_1  = "+="
-	AssignmentOperator_2  = "-="
-	AssignmentOperator_3  = "*="
-	AssignmentOperator_4  = "/="
-	AssignmentOperator_5  = "%="
-	AssignmentOperator_6  = "<<="
-	AssignmentOperator_7  = ">>="
-	AssignmentOperator_8  = ">>>="
-	AssignmentOperator_9  = "|="
-	AssignmentOperator_10 = "^="
-	AssignmentOperator_11 = "&="
+	AssignmentOperatorEquals           = "="
+	AssignmentOperatorAdd              = "+="
+	AssignmentOperatorSubtract         = "-="
+	AssignmentOperatorMultiply         = "*="
+	AssignmentOperatorDivide           = "/="
+	AssignmentOperatorModulo           = "%="
+	AssignmentOperatorShiftLeft        = "<<="
+	AssignmentOperatorShiftRight       = ">>="
+	AssignmentOperatorShiftRightSigned = ">>>="
+	AssignmentOperatorOr               = "|="
+	AssignmentOperatorXor              = "^="
+	AssignmentOperatorAnd              = "&="
 )
 
 func (v AssignmentOperator) Valid() bool {
-	return v == AssignmentOperator_0 || v == AssignmentOperator_1 || v == AssignmentOperator_2 || v == AssignmentOperator_3 || v == AssignmentOperator_4 || v == AssignmentOperator_5 || v == AssignmentOperator_6 || v == AssignmentOperator_7 || v == AssignmentOperator_8 || v == AssignmentOperator_9 || v == AssignmentOperator_10 || v == AssignmentOperator_11
+	return v == AssignmentOperatorEquals || v == AssignmentOperatorAdd || v == AssignmentOperatorSubtract || v == AssignmentOperatorMultiply || v == AssignmentOperatorDivide || v == AssignmentOperatorModulo || v == AssignmentOperatorShiftLeft || v == AssignmentOperatorShiftRight || v == AssignmentOperatorShiftRightSigned || v == AssignmentOperatorOr || v == AssignmentOperatorXor || v == AssignmentOperatorAnd
 }
 
 type LogicalOperator string
 
 const (
-	LogicalOperator_0 = "||"
-	LogicalOperator_1 = "&&"
+	LogicalOperatorOr  = "||"
+	LogicalOperatorAnd = "&&"
 )
 
-func (v LogicalOperator) Valid() bool { return v == LogicalOperator_0 || v == LogicalOperator_1 }
+func (v LogicalOperator) Valid() bool { return v == LogicalOperatorOr || v == LogicalOperatorAnd }
 
 type Node struct {
 	Type string          `json:"type"`
@@ -95,8 +103,8 @@ type SourceLocation struct {
 }
 
 type Position struct {
-	Line   number `json:"line"`
-	Column number `json:"column"`
+	Line   int `json:"line"`
+	Column int `json:"column"`
 }
 
 type Identifier struct {
@@ -126,12 +134,12 @@ type StringLiteral struct {
 
 type BooleanLiteral struct {
 	Literal
-	Value boolean `json:"value"`
+	Value bool `json:"value"`
 }
 
 type NumericLiteral struct {
 	Literal
-	Value number `json:"value"`
+	Value float64 `json:"value"`
 }
 
 type StatementOrModuleDeclaration struct {
@@ -162,8 +170,8 @@ type Function struct {
 	Id        *Identifier    `json:"id"`
 	Params    []Pattern      `json:"params"`
 	Body      BlockStatement `json:"body"`
-	Generator boolean        `json:"generator"`
-	Async     boolean        `json:"async"`
+	Generator bool           `json:"generator"`
+	Async     bool           `json:"async"`
 }
 
 type Statement struct {
@@ -367,14 +375,14 @@ func (u BlockStatementOrExpression) MarshalJSON() ([]byte, error) {
 type ArrowFunctionExpression struct {
 	Function
 	Expression
-	Body       BlockStatementOrExpression `json:"body"`
-	Expression boolean                    `json:"expression"`
+	Body         BlockStatementOrExpression `json:"body"`
+	IsExpression bool                       `json:"expression"`
 }
 
 type YieldExpression struct {
 	Expression
 	Argument *Expression `json:"argument"`
-	Delegate boolean     `json:"delegate"`
+	Delegate bool        `json:"delegate"`
 }
 
 type AwaitExpression struct {
@@ -430,14 +438,14 @@ type ObjectExpression struct {
 type ObjectMember struct {
 	Node
 	Key        Expression  `json:"key"`
-	Computed   boolean     `json:"computed"`
+	Computed   bool        `json:"computed"`
 	Value      Expression  `json:"value"`
 	Decorators []Decorator `json:"decorators"`
 }
 
 type ObjectProperty struct {
 	ObjectMember
-	Shorthand boolean `json:"shorthand"`
+	Shorthand bool `json:"shorthand"`
 }
 
 type ObjectMethod struct {
@@ -464,7 +472,7 @@ type FunctionExpression struct {
 type UnaryExpression struct {
 	Expression
 	Operator UnaryOperator `json:"operator"`
-	Prefix   boolean       `json:"prefix"`
+	Prefix   bool          `json:"prefix"`
 	Argument Expression    `json:"argument"`
 }
 
@@ -472,7 +480,7 @@ type UpdateExpression struct {
 	Expression
 	Operator UpdateOperator `json:"operator"`
 	Argument Expression     `json:"argument"`
-	Prefix   boolean        `json:"prefix"`
+	Prefix   bool           `json:"prefix"`
 }
 
 type BinaryExpression struct {
@@ -538,7 +546,7 @@ type MemberExpression struct {
 	Pattern
 	Object   ExpressionOrSuper `json:"object"`
 	Property Expression        `json:"property"`
-	Computed boolean           `json:"computed"`
+	Computed bool              `json:"computed"`
 }
 
 type BindExpression struct {
@@ -583,9 +591,9 @@ type TaggedTemplateExpression struct {
 
 type TemplateElement struct {
 	Node
-	Tail   boolean `json:"tail"`
-	Cooked string  `json:"cooked"`
-	Raw    string  `json:"raw"`
+	Tail   bool   `json:"tail"`
+	Cooked string `json:"cooked"`
+	Raw    string `json:"raw"`
 }
 
 type Pattern struct {
@@ -668,8 +676,8 @@ type ClassMethod struct {
 	Key        Expression         `json:"key"`
 	Value      FunctionExpression `json:"value"`
 	Kind       string             `json:"kind"`
-	Computed   boolean            `json:"computed"`
-	Static     boolean            `json:"static"`
+	Computed   bool               `json:"computed"`
+	Static     bool               `json:"static"`
 	Decorators []Decorator        `json:"decorators"`
 }
 
@@ -780,4 +788,3 @@ type ExportAllDeclaration struct {
 	ModuleDeclaration
 	Source Literal `json:"source"`
 }
-
