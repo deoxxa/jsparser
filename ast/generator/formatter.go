@@ -219,5 +219,5 @@ func (f *Formatter) formatFieldType(c *formattingContext, tf esTypeField) string
 		return p + l[0]
 	}
 
-	return strings.Join(l, "Or")
+	return p + strings.Join(l, "Or")
 }

@@ -160,9 +160,9 @@ func (u StatementOrModuleDeclaration) MarshalJSON() ([]byte, error) {
 
 type Program struct {
 	Node
-	SourceType string                       `json:"sourceType"`
-	Body       StatementOrModuleDeclaration `json:"body"`
-	Directives []Directive                  `json:"directives"`
+	SourceType string                         `json:"sourceType"`
+	Body       []StatementOrModuleDeclaration `json:"body"`
+	Directives []Directive                    `json:"directives"`
 }
 
 type Function struct {
@@ -408,7 +408,7 @@ func (u ExpressionOrSpreadElement) MarshalJSON() ([]byte, error) {
 
 type ArrayExpression struct {
 	Expression
-	Elements ExpressionOrSpreadElement `json:"elements"`
+	Elements []ExpressionOrSpreadElement `json:"elements"`
 }
 
 type ObjectPropertyOrObjectMethodOrSpreadProperty struct {
@@ -432,7 +432,7 @@ func (u ObjectPropertyOrObjectMethodOrSpreadProperty) MarshalJSON() ([]byte, err
 
 type ObjectExpression struct {
 	Expression
-	Properties ObjectPropertyOrObjectMethodOrSpreadProperty `json:"properties"`
+	Properties []ObjectPropertyOrObjectMethodOrSpreadProperty `json:"properties"`
 }
 
 type ObjectMember struct {
@@ -564,8 +564,8 @@ type ConditionalExpression struct {
 
 type CallExpression struct {
 	Expression
-	Callee    ExpressionOrSuper         `json:"callee"`
-	Arguments ExpressionOrSpreadElement `json:"arguments"`
+	Callee    ExpressionOrSuper           `json:"callee"`
+	Arguments []ExpressionOrSpreadElement `json:"arguments"`
 }
 
 type NewExpression struct {
@@ -623,7 +623,7 @@ func (u AssignmentPropertyOrRestProperty) MarshalJSON() ([]byte, error) {
 
 type ObjectPattern struct {
 	Pattern
-	Properties AssignmentPropertyOrRestProperty `json:"properties"`
+	Properties []AssignmentPropertyOrRestProperty `json:"properties"`
 }
 
 type ArrayPattern struct {
@@ -668,7 +668,7 @@ func (u ClassMethodOrClassProperty) MarshalJSON() ([]byte, error) {
 
 type ClassBody struct {
 	Node
-	Body ClassMethodOrClassProperty `json:"body"`
+	Body []ClassMethodOrClassProperty `json:"body"`
 }
 
 type ClassMethod struct {
@@ -734,8 +734,8 @@ func (u ImportSpecifierOrImportDefaultSpecifierOrImportNamespaceSpecifier) Marsh
 
 type ImportDeclaration struct {
 	ModuleDeclaration
-	Specifiers ImportSpecifierOrImportDefaultSpecifierOrImportNamespaceSpecifier `json:"specifiers"`
-	Source     Literal                                                           `json:"source"`
+	Specifiers []ImportSpecifierOrImportDefaultSpecifierOrImportNamespaceSpecifier `json:"specifiers"`
+	Source     Literal                                                             `json:"source"`
 }
 
 type ImportSpecifier struct {
