@@ -1,9 +1,5 @@
 package ast
 
-import (
-	"encoding/json"
-)
-
 type UnaryOperator string
 
 const (
@@ -142,21 +138,12 @@ type NumericLiteral struct {
 	Value float64 `json:"value"`
 }
 
-type StatementOrModuleDeclaration struct {
-	Statement         *Statement
-	ModuleDeclaration *ModuleDeclaration
+type StatementOrModuleDeclaration interface {
+	IsStatementOrModuleDeclaration() bool
 }
 
-func (u StatementOrModuleDeclaration) MarshalJSON() ([]byte, error) {
-	switch {
-	case u.Statement != nil:
-		return json.Marshal(u.Statement)
-	case u.ModuleDeclaration != nil:
-		return json.Marshal(u.ModuleDeclaration)
-	default:
-		return []byte("null"), nil
-	}
-}
+func (Statement) IsStatementOrModuleDeclaration() bool         { return true }
+func (ModuleDeclaration) IsStatementOrModuleDeclaration() bool { return true }
 
 type Program struct {
 	Node
@@ -273,21 +260,12 @@ type DoWhileStatement struct {
 	Test Expression `json:"test"`
 }
 
-type VariableDeclarationOrExpression struct {
-	VariableDeclaration *VariableDeclaration
-	Expression          *Expression
+type VariableDeclarationOrExpression interface {
+	IsVariableDeclarationOrExpression() bool
 }
 
-func (u VariableDeclarationOrExpression) MarshalJSON() ([]byte, error) {
-	switch {
-	case u.VariableDeclaration != nil:
-		return json.Marshal(u.VariableDeclaration)
-	case u.Expression != nil:
-		return json.Marshal(u.Expression)
-	default:
-		return []byte("null"), nil
-	}
-}
+func (VariableDeclaration) IsVariableDeclarationOrExpression() bool { return true }
+func (Expression) IsVariableDeclarationOrExpression() bool          { return true }
 
 type ForStatement struct {
 	Statement
@@ -356,21 +334,12 @@ type ThisExpression struct {
 	Expression
 }
 
-type BlockStatementOrExpression struct {
-	BlockStatement *BlockStatement
-	Expression     *Expression
+type BlockStatementOrExpression interface {
+	IsBlockStatementOrExpression() bool
 }
 
-func (u BlockStatementOrExpression) MarshalJSON() ([]byte, error) {
-	switch {
-	case u.BlockStatement != nil:
-		return json.Marshal(u.BlockStatement)
-	case u.Expression != nil:
-		return json.Marshal(u.Expression)
-	default:
-		return []byte("null"), nil
-	}
-}
+func (BlockStatement) IsBlockStatementOrExpression() bool { return true }
+func (Expression) IsBlockStatementOrExpression() bool     { return true }
 
 type ArrowFunctionExpression struct {
 	Function
@@ -390,45 +359,25 @@ type AwaitExpression struct {
 	Argument *Expression `json:"argument"`
 }
 
-type ExpressionOrSpreadElement struct {
-	Expression    *Expression
-	SpreadElement *SpreadElement
+type ExpressionOrSpreadElement interface {
+	IsExpressionOrSpreadElement() bool
 }
 
-func (u ExpressionOrSpreadElement) MarshalJSON() ([]byte, error) {
-	switch {
-	case u.Expression != nil:
-		return json.Marshal(u.Expression)
-	case u.SpreadElement != nil:
-		return json.Marshal(u.SpreadElement)
-	default:
-		return []byte("null"), nil
-	}
-}
+func (Expression) IsExpressionOrSpreadElement() bool    { return true }
+func (SpreadElement) IsExpressionOrSpreadElement() bool { return true }
 
 type ArrayExpression struct {
 	Expression
 	Elements []ExpressionOrSpreadElement `json:"elements"`
 }
 
-type ObjectPropertyOrObjectMethodOrSpreadProperty struct {
-	ObjectProperty *ObjectProperty
-	ObjectMethod   *ObjectMethod
-	SpreadProperty *SpreadProperty
+type ObjectPropertyOrObjectMethodOrSpreadProperty interface {
+	IsObjectPropertyOrObjectMethodOrSpreadProperty() bool
 }
 
-func (u ObjectPropertyOrObjectMethodOrSpreadProperty) MarshalJSON() ([]byte, error) {
-	switch {
-	case u.ObjectProperty != nil:
-		return json.Marshal(u.ObjectProperty)
-	case u.ObjectMethod != nil:
-		return json.Marshal(u.ObjectMethod)
-	case u.SpreadProperty != nil:
-		return json.Marshal(u.SpreadProperty)
-	default:
-		return []byte("null"), nil
-	}
-}
+func (ObjectProperty) IsObjectPropertyOrObjectMethodOrSpreadProperty() bool { return true }
+func (ObjectMethod) IsObjectPropertyOrObjectMethodOrSpreadProperty() bool   { return true }
+func (SpreadProperty) IsObjectPropertyOrObjectMethodOrSpreadProperty() bool { return true }
 
 type ObjectExpression struct {
 	Expression
@@ -490,21 +439,12 @@ type BinaryExpression struct {
 	Right    Expression     `json:"right"`
 }
 
-type PatternOrExpression struct {
-	Pattern    *Pattern
-	Expression *Expression
+type PatternOrExpression interface {
+	IsPatternOrExpression() bool
 }
 
-func (u PatternOrExpression) MarshalJSON() ([]byte, error) {
-	switch {
-	case u.Pattern != nil:
-		return json.Marshal(u.Pattern)
-	case u.Expression != nil:
-		return json.Marshal(u.Expression)
-	default:
-		return []byte("null"), nil
-	}
-}
+func (Pattern) IsPatternOrExpression() bool    { return true }
+func (Expression) IsPatternOrExpression() bool { return true }
 
 type AssignmentExpression struct {
 	Expression
@@ -525,21 +465,12 @@ type SpreadElement struct {
 	Argument Expression `json:"argument"`
 }
 
-type ExpressionOrSuper struct {
-	Expression *Expression
-	Super      *Super
+type ExpressionOrSuper interface {
+	IsExpressionOrSuper() bool
 }
 
-func (u ExpressionOrSuper) MarshalJSON() ([]byte, error) {
-	switch {
-	case u.Expression != nil:
-		return json.Marshal(u.Expression)
-	case u.Super != nil:
-		return json.Marshal(u.Super)
-	default:
-		return []byte("null"), nil
-	}
-}
+func (Expression) IsExpressionOrSuper() bool { return true }
+func (Super) IsExpressionOrSuper() bool      { return true }
 
 type MemberExpression struct {
 	Expression
@@ -605,21 +536,12 @@ type AssignmentProperty struct {
 	Value Pattern `json:"value"`
 }
 
-type AssignmentPropertyOrRestProperty struct {
-	AssignmentProperty *AssignmentProperty
-	RestProperty       *RestProperty
+type AssignmentPropertyOrRestProperty interface {
+	IsAssignmentPropertyOrRestProperty() bool
 }
 
-func (u AssignmentPropertyOrRestProperty) MarshalJSON() ([]byte, error) {
-	switch {
-	case u.AssignmentProperty != nil:
-		return json.Marshal(u.AssignmentProperty)
-	case u.RestProperty != nil:
-		return json.Marshal(u.RestProperty)
-	default:
-		return []byte("null"), nil
-	}
-}
+func (AssignmentProperty) IsAssignmentPropertyOrRestProperty() bool { return true }
+func (RestProperty) IsAssignmentPropertyOrRestProperty() bool       { return true }
 
 type ObjectPattern struct {
 	Pattern
@@ -650,21 +572,12 @@ type Class struct {
 	Decorators []Decorator `json:"decorators"`
 }
 
-type ClassMethodOrClassProperty struct {
-	ClassMethod   *ClassMethod
-	ClassProperty *ClassProperty
+type ClassMethodOrClassProperty interface {
+	IsClassMethodOrClassProperty() bool
 }
 
-func (u ClassMethodOrClassProperty) MarshalJSON() ([]byte, error) {
-	switch {
-	case u.ClassMethod != nil:
-		return json.Marshal(u.ClassMethod)
-	case u.ClassProperty != nil:
-		return json.Marshal(u.ClassProperty)
-	default:
-		return []byte("null"), nil
-	}
-}
+func (ClassMethod) IsClassMethodOrClassProperty() bool   { return true }
+func (ClassProperty) IsClassMethodOrClassProperty() bool { return true }
 
 type ClassBody struct {
 	Node
@@ -713,23 +626,18 @@ type ModuleSpecifier struct {
 	Local Identifier `json:"local"`
 }
 
-type ImportSpecifierOrImportDefaultSpecifierOrImportNamespaceSpecifier struct {
-	ImportSpecifier          *ImportSpecifier
-	ImportDefaultSpecifier   *ImportDefaultSpecifier
-	ImportNamespaceSpecifier *ImportNamespaceSpecifier
+type ImportSpecifierOrImportDefaultSpecifierOrImportNamespaceSpecifier interface {
+	IsImportSpecifierOrImportDefaultSpecifierOrImportNamespaceSpecifier() bool
 }
 
-func (u ImportSpecifierOrImportDefaultSpecifierOrImportNamespaceSpecifier) MarshalJSON() ([]byte, error) {
-	switch {
-	case u.ImportSpecifier != nil:
-		return json.Marshal(u.ImportSpecifier)
-	case u.ImportDefaultSpecifier != nil:
-		return json.Marshal(u.ImportDefaultSpecifier)
-	case u.ImportNamespaceSpecifier != nil:
-		return json.Marshal(u.ImportNamespaceSpecifier)
-	default:
-		return []byte("null"), nil
-	}
+func (ImportSpecifier) IsImportSpecifierOrImportDefaultSpecifierOrImportNamespaceSpecifier() bool {
+	return true
+}
+func (ImportDefaultSpecifier) IsImportSpecifierOrImportDefaultSpecifierOrImportNamespaceSpecifier() bool {
+	return true
+}
+func (ImportNamespaceSpecifier) IsImportSpecifierOrImportDefaultSpecifierOrImportNamespaceSpecifier() bool {
+	return true
 }
 
 type ImportDeclaration struct {
@@ -763,21 +671,12 @@ type ExportSpecifier struct {
 	Exported Identifier `json:"exported"`
 }
 
-type DeclarationOrExpression struct {
-	Declaration *Declaration
-	Expression  *Expression
+type DeclarationOrExpression interface {
+	IsDeclarationOrExpression() bool
 }
 
-func (u DeclarationOrExpression) MarshalJSON() ([]byte, error) {
-	switch {
-	case u.Declaration != nil:
-		return json.Marshal(u.Declaration)
-	case u.Expression != nil:
-		return json.Marshal(u.Expression)
-	default:
-		return []byte("null"), nil
-	}
-}
+func (Declaration) IsDeclarationOrExpression() bool { return true }
+func (Expression) IsDeclarationOrExpression() bool  { return true }
 
 type ExportDefaultDeclaration struct {
 	ModuleDeclaration

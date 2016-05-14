@@ -163,20 +163,11 @@ func (f *Formatter) maybeMakeUnion(c *formattingContext, tf esTypeField) {
 
 	w := c.f
 
-	w("type %s struct {\n", n)
+	w("type %s interface { Is%s() bool }\n", n, n)
 	for _, s := range l {
-		w("  %s *%s\n", s, s)
+		w("func (%s) Is%s() bool { return true }\n", s, n)
 	}
-	w("}\n\n")
-
-	w("func (u %s) MarshalJSON() ([]byte, error) {\n", n)
-	w("  switch {\n")
-	for _, s := range l {
-		w("  case u.%s != nil: return json.Marshal(u.%s)\n", s, s)
-	}
-	w("  default: return []byte(\"null\"), nil\n")
-	w("  }\n")
-	w("}\n\n")
+	w("\n")
 }
 
 func (f *Formatter) formatFieldType(c *formattingContext, tf esTypeField) string {
